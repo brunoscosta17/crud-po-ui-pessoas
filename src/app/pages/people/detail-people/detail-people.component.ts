@@ -15,7 +15,6 @@ import { PoPageDynamicDetailField, PoPageDynamicDetailModule } from '@po-ui/ng-t
 })
 export class DetailPeopleComponent implements OnInit {
 
-  // PLEASE ADD THE API URL SERVICE HERE
   readonly apiService = 'https://po-sample-api.onrender.com/v1/people';
 
   readonly breadcrumb: PoBreadcrumb = {

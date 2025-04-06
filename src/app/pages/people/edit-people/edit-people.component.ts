@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoBreadcrumb } from '@po-ui/ng-components';
-import { PoPageDynamicEditActions, PoPageDynamicEditField, PoPageDynamicEditModule } from '@po-ui/ng-templates';
+import { PoPageDynamicEditActions, PoPageDynamicEditField, PoPageDynamicEditLiterals, PoPageDynamicEditModule } from '@po-ui/ng-templates';
 
 @Component({
   selector: 'app-edit-people',
@@ -40,7 +40,15 @@ export class EditPeopleComponent implements OnInit {
   };
 
   readonly fields: Array<PoPageDynamicEditField> = [
-    { property: 'status', label: 'Situação' },
+    {
+      property: 'status',
+      label: 'Situação',
+      options: [
+        { label: 'Ativo', value: 'active' },
+        { label: 'Inativo', value: 'inactive' }
+      ],
+      required: true
+    },
     { property: 'name', label: 'Nome', required: true },
     { property: 'birthdate', label: 'Nascimento', type: 'date' },
     { property: 'genre', label: 'Gênero', options: ['Masculino', 'Feminino'] },
@@ -50,6 +58,19 @@ export class EditPeopleComponent implements OnInit {
     { property: 'country', label: 'País' },
     { property: 'email', label: 'Email', required: true }
   ];
+
+  customLiterals: PoPageDynamicEditLiterals = {
+    cancelConfirmMessage: 'Deseja cancelar a edição?',
+    detailActionNew: 'Novo',
+    pageActionCancel: 'Cancelar',
+    pageActionSave: 'Salvar',
+    pageActionSaveNew: 'Salvar e Novo',
+    registerNotFound: 'Registro não encontrado',
+    saveNotificationError: 'Erro ao salvar o registro',
+    saveNotificationSuccessSave: 'Registro salvo com sucesso',
+    saveNotificationSuccessUpdate: 'Registro atualizado com sucesso',
+    saveNotificationWarning: 'Atenção!',
+  };
 
   ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');

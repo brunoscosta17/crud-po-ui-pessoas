@@ -8,12 +8,15 @@ import {
   PoInfoModule,
   PoModalComponent,
   PoModalModule,
+  PoNotificationService,
   PoPageModule,
   PoTableAction,
+  PoTableColumn,
+  PoTableLiterals,
   PoTableModule,
   PoTagModule
 } from '@po-ui/ng-components';
-import { PoPageDynamicSearchFilters, PoPageDynamicSearchModule, PoPageDynamicTableModule } from '@po-ui/ng-templates';
+import { PoPageDynamicSearchFilters, PoPageDynamicSearchLiterals, PoPageDynamicSearchModule, PoPageDynamicTableModule } from '@po-ui/ng-templates';
 import { PeopleService } from './people.service';
 
 export interface PoPageDynamicTableActions {
@@ -55,6 +58,20 @@ export class ListPeopleComponent {
   hasMoreItems = true;
   itemsPerPage = 10;
   currentPage = 1;
+  customLiterals: PoPageDynamicSearchLiterals = {
+    disclaimerGroupTitle: 'Filtros aplicados:',
+    filterTitle: 'Filtro avançado',
+    filterCancelLabel: 'Fechar',
+    filterConfirmLabel: 'Aplicar',
+    quickSearchLabel: 'Valor pesquisado:',
+    searchPlaceholder: 'Pesquise aqui'
+  };
+
+  tableCustomLiterals: PoTableLiterals = {
+    loadMoreData: 'Carregar mais',
+    noVisibleColumn: 'Nenhuma coluna visível',
+    noData: 'Nenhum registro encontrado',
+  };
 
   readonly breadcrumb: PoBreadcrumb = {
     items: [
@@ -68,24 +85,46 @@ export class ListPeopleComponent {
     { label: 'Detalhes', icon: 'po-icon-info', action: this.details.bind(this) },
     { label: 'Remover', icon: 'po-icon-delete', action: this.remove.bind(this) }
   ];
+
   hideRemoveAllDisclaimer = false;
-  readonly columns = [
+
+  confirmRemoveAction = {
+    label: 'Confirmar',
+    action: () => this.confirmRemove()
+  };
+
+  cancelRemoveAction = {
+    label: 'Cancelar',
+    action: () => this.poModal.close()
+  };
+
+  readonly columns: PoTableColumn[] = [
     {
-      property: '',
-      icons: [
-        {
-          action: this.remove.bind(this),
-          icon: 'po-icon-delete',
-          tooltip: 'Remover',
-          value: 'id'
-        }
+      property: 'status',
+      label: 'Situação',
+      type: 'label',
+      labels: [
+        { value: 'active', color: 'color-10', label: 'Ativo' },
+        { value: 'inactive', color: 'color-07', label: 'Inativo' }
       ]
     },
     { property: 'id', label: 'ID' },
     { property: 'name', label: 'Nome' },
+    { property: 'nickname', label: 'Apelido' },
     { property: 'email', label: 'Email' },
+    { property: 'birthdate', label: 'Data de Nascimento', type: 'date', format: 'dd/MM/yyyy' },
+    { property: 'genreDescription', label: 'Gênero' },
+    { property: 'nationality', label: 'Nacionalidade' },
+    { property: 'birthPlace', label: 'Naturalidade' },
+    { property: 'graduation', label: 'Escolaridade' },
+    { property: 'father', label: 'Nome do Pai' },
+    { property: 'mother', label: 'Nome da Mãe' },
+    { property: 'street', label: 'Rua' },
+    { property: 'cityName', label: 'Cidade' },
+    { property: 'state', label: 'Estado' },
+    { property: 'uf', label: 'UF' },
+    { property: 'country', label: 'País' }
   ];
-
 
   readonly filters: PoPageDynamicSearchFilters[] = [
     { property: 'name', label: 'Nome' },
@@ -94,6 +133,7 @@ export class ListPeopleComponent {
 
   private router = inject(Router);
   private peopleService = inject(PeopleService);
+  private notificationService = inject(PoNotificationService);
 
   ngOnInit() {
     this.loadPeople();
@@ -115,7 +155,6 @@ export class ListPeopleComponent {
     });
   }
 
-
   edit(item: any) {
     this.router.navigate(['/people', item.id, 'edit']);
   }
@@ -129,13 +168,49 @@ export class ListPeopleComponent {
     this.poModal.open();
   }
 
+  confirmRemove() {
+    if (!this.selectedItem) return;
+
+    this.isLoading = true;
+
+    this.peopleService.delete(this.selectedItem.id).subscribe({
+      next: () => {
+        this.people = this.people.filter(p => p.id !== this.selectedItem.id);
+        this.notificationService.success('Pessoa removida com sucesso.');
+        this.selectedItem = null;
+        this.poModal.close();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao remover pessoa:', err);
+        this.notificationService.error('Não foi possível remover a pessoa. Tente novamente.');
+        this.poModal.close();
+        this.isLoading = false;
+      }
+    });
+  }
+
   onQuickSearch(term: string) {
     const filtro = term?.toLowerCase() || '';
 
-    this.people = this.allPeople.filter((person: any) =>
-      person.name?.toLowerCase().includes(filtro) ||
-      person.email?.toLowerCase().includes(filtro)
-    );
+    this.peopleService.getAll().subscribe({
+      next: (data) => {
+        this.people = data.items.filter((person: any) =>
+          person.name?.toLowerCase().includes(filtro) ||
+          person.email?.toLowerCase().includes(filtro)
+        );
+        this.hasMoreItems = false;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar pessoas para filtro', err);
+      }
+    });
+  }
+
+  resetSearch() {
+    this.people = [];
+    this.currentPage = 1;
+    this.loadPeople(this.currentPage);
   }
 
   newPerson() {

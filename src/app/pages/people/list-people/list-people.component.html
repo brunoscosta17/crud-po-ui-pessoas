@@ -1,16 +1,19 @@
 <po-page-dynamic-search
   [p-title]="'Lista de pessoas'"
   [p-filters]="filters"
+  [p-literals]="customLiterals"
   [p-hide-remove-all-disclaimer]="true"
   [p-breadcrumb]="breadcrumb"
   (p-quick-search)="onQuickSearch($event)"
+  [p-visible-fixed-filters]="false"
 >
   <po-button
-    label="Nova Pessoa"
-    p-primary
-    p-icon="po-icon-user-add"
-    (p-click)="newPerson()"
     class="po-mb-3"
+    p-aria-label="Adicionar nova pessoa"
+    p-icon="po-icon-user-add"
+    [p-kind]="'primary'"
+    [p-label]="'Adicionar'"
+    (p-click)="newPerson()"
   >
   </po-button>
   <po-table
@@ -18,12 +21,18 @@
     [p-columns]="columns"
     [p-actions]="tableActions"
     [p-loading]="isLoading"
+    [p-literals]="tableCustomLiterals"
     [p-hide-columns-manager]="true"
     (p-show-more)="loadMoreData()"
     [p-show-more-disabled]="!hasMoreItems"
   ></po-table>
 </po-page-dynamic-search>
 
-<po-modal p-title="Confirmação" #poModal>
+<po-modal
+  p-title="Confirmação"
+  #poModal
+  [p-primary-action]="confirmRemoveAction"
+  [p-secondary-action]="cancelRemoveAction"
+>
   Tem certeza que deseja remover essa pessoa?
 </po-modal>
