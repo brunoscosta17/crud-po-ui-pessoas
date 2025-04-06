@@ -12,6 +12,10 @@ export class PeopleService {
     return this.http.get<any>(this.api);
   }
 
+  getAllPaginated(page: number, pageSize: number): Observable<any> {
+    return this.http.get<any>(`${this.api}?page=${page}&pageSize=${pageSize}`);
+  }
+
   getById(id: string): Observable<any> {
     return this.http.get<any>(`${this.api}/${id}`);
   }

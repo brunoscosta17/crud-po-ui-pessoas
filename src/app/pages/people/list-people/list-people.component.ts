@@ -99,14 +99,13 @@ export class ListPeopleComponent {
     this.loadPeople();
   }
 
-  loadPeople(filters: any = {}) {
-    console.log('Carregando pessoas com filtros:', filters);
+  loadPeople(page: number = 1, pageSize: number = this.itemsPerPage) {
     this.isLoading = true;
 
-    this.peopleService.getAll().subscribe({
+    this.peopleService.getAllPaginated(page, pageSize).subscribe({
       next: (data) => {
-        this.allPeople = data.items;
-        this.people = data.items;
+        this.people = [...this.people, ...data.items];
+        this.hasMoreItems = data.items.length === pageSize;
         this.isLoading = false;
       },
       error: (err) => {
@@ -144,13 +143,7 @@ export class ListPeopleComponent {
   }
 
   loadMoreData() {
-    const nextItems = this.people.slice(
-      this.currentPage * this.itemsPerPage,
-      (this.currentPage + 1) * this.itemsPerPage
-    );
-
-    this.visibleItems = [...this.visibleItems, ...nextItems];
     this.currentPage++;
-    this.hasMoreItems = this.people.length > this.visibleItems.length;
+    this.loadPeople(this.currentPage);
   }
 }
